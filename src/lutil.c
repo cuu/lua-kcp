@@ -2,21 +2,17 @@
 #include <lualib.h>
 #include <lauxlib.h>
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
-#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
-#include <windows.h>
-#elif !defined(__unix)
-#define __unix
-#endif
-
-#ifdef __unix
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#endif
+
+#include "ikcp.h"
 
 static int _l_gettimeofday(lua_State * L){
     struct timeval tv;
@@ -27,15 +23,39 @@ static int _l_gettimeofday(lua_State * L){
     return 1;
 }
 
+static inline void itimeofday(long *sec, long *usec)
+{
+    struct timeval time;
+    gettimeofday(&time, NULL);
+    if (sec) *sec = time.tv_sec;
+    if (usec) *usec = time.tv_usec; 
+}
+
+/* get clock in millisecond 64 */
+static inline IINT64 iclock64(void)
+{
+    long s, u;
+    IINT64 value;
+    itimeofday(&s, &u);
+    value = ((IINT64)s) * 1000 + (u / 1000);
+    return value;
+}
+
+static inline IUINT32 iclock()
+{
+    return (IUINT32)(iclock64() & 0xfffffffful);
+}
+
+static int _l_iclock(lua_State* L) {
+    uint32_t ret = iclock();
+    lua_pushinteger(L, ret);
+    return 1;
+}
 /* sleep in millisecond */
 static int _l_isleep(lua_State* L)
 {
     uint32_t millisecond = luaL_checkinteger(L, 1);
-	#ifdef __unix
 	usleep((millisecond << 10) - (millisecond << 4) - (millisecond << 3));
-	#elif defined(_WIN32)
-	Sleep(millisecond);
-	#endif
     return 0;
 }
 
@@ -67,6 +87,7 @@ int luaopen_lutil(lua_State *L) {
         {"isleep", _l_isleep},
         {"netbytes2uint32", _netbytes2uint32},
         {"uint322netbytes", _uint322netbytes},
+        {"iclock",_l_iclock},
         {NULL, NULL},
     };
 
