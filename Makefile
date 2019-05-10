@@ -32,6 +32,7 @@ lua53:
 all: $(LUA_EX_LIB)/lutil.so $(LUA_EX_LIB)/lkcp.so
 
 $(LUA_EX_LIB)/lutil.so: $(SRC)/lutil.c
+	cp $(EXTERNAL)/kcp/ikcp.h $(INCLUDE_DIR)
 	gcc $(CFLAGS) $(SHARED) $^ -o $@ 
 
 $(LUA_EX_LIB)/lkcp.so: $(SRC)/lkcp.c  $(EXTERNAL)/kcp/ikcp.c
