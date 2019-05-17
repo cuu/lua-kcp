@@ -216,6 +216,16 @@ static int lkcp_nodelay(lua_State* L){
 }
 
 
+static int lkcp_getconv(lua_State* L){
+	
+	size_t size;
+	const char *data = luaL_checklstring(L, 1, &size);
+  int32_t hr = ikcp_getconv(data);
+  
+  lua_pushinteger(L, hr);
+  return 1;
+}
+
 static const struct luaL_Reg lkcp_methods [] = {
     { "lkcp_recv" , lkcp_recv },
     { "lkcp_send" , lkcp_send },
@@ -230,6 +240,7 @@ static const struct luaL_Reg lkcp_methods [] = {
 
 static const struct luaL_Reg l_methods[] = {
     { "lkcp_create" , lkcp_create },
+    { "lkcp_getconv" , lkcp_getconv },
     {NULL, NULL},
 };
 
